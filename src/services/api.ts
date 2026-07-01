@@ -1,7 +1,6 @@
 // ============================================================
-// AI 绘本工坊 - 多提供商 API 服务层
-// 支持: DashScope(通义千问) / DeepSeek
-// API Key 已内置，用户无需输入
+// AI 绘本工坊 - API 服务层
+// 使用 DashScope(通义千问)，API Key 已内置，用户无需输入
 // ============================================================
 
 import OpenAI from 'openai';
@@ -11,10 +10,7 @@ import type { StoryScript, StoryPage, ArtStyle, ApiProvider } from '../types';
 // 硬编码 API Key（已内置，用户无需输入）
 // ============================================================
 
-const BUILTIN_KEYS: Record<ApiProvider, string> = {
-  dashscope: 'sk-ws-H.RXIDYPP.bt9j.MEUCICYerY8EZS6zEmp76aSKuCCsEzLmZQX8_XVWOPIybN_zAiEAkSUoMaLV8ReCk3MXrnCCaehR0HxPJza5nlwmI7jGNrc',
-  deepseek: 'sk-f5c64d5df938490abe94cc47f20fed54',
-};
+const BUILTIN_KEY = 'sk-ws-H.RXIDYPP.bt9j.MEUCICYerY8EZS6zEmp76aSKuCCsEzLmZQX8_XVWOPIybN_zAiEAkSUoMaLV8ReCk3MXrnCCaehR0HxPJza5nlwmI7jGNrc';
 
 // ============================================================
 // 提供商配置
@@ -39,16 +35,6 @@ export const PROVIDER_CONFIG: Record<ApiProvider, {
     supportsImage: true,
     supportsTTS: true,
     baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-  },
-  deepseek: {
-    name: 'DeepSeek',
-    description: '深度求索，超低价格',
-    textModels: [
-      { id: 'deepseek-chat', label: 'DeepSeek Chat' },
-    ],
-    supportsImage: false,
-    supportsTTS: false,
-    baseURL: 'https://api.deepseek.com',
   },
 };
 
@@ -85,10 +71,10 @@ export function getVoiceOptions(_provider: ApiProvider) {
 // OpenAI 兼容客户端（使用内置 Key）
 // ============================================================
 
-function getClient(provider: ApiProvider): OpenAI {
-  const config = PROVIDER_CONFIG[provider];
+function getClient(_provider: ApiProvider): OpenAI {
+  const config = PROVIDER_CONFIG[_provider];
   return new OpenAI({
-    apiKey: BUILTIN_KEYS[provider],
+    apiKey: BUILTIN_KEY,
     baseURL: config.baseURL,
     dangerouslyAllowBrowser: true,
   });
@@ -182,7 +168,7 @@ async function generateIllustrationDashScope(
   prompt: string,
   artStyle: ArtStyle,
 ): Promise<string> {
-  const apiKey = BUILTIN_KEYS.dashscope;
+  const apiKey = BUILTIN_KEY;
   const stylePrefix = STYLE_PROMPTS[artStyle];
   const fullPrompt = `${stylePrefix}. Scene: ${prompt}. Maintain consistent cute chibi character design throughout.`;
 

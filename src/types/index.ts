@@ -6,7 +6,7 @@
 export type Step = 'keywords' | 'script' | 'storyboard' | 'voice' | 'preview' | 'export';
 
 /** API 提供商 */
-export type ApiProvider = 'dashscope' | 'deepseek';
+export type ApiProvider = 'dashscope';
 
 /** 提供商配置 */
 export interface ProviderConfig {

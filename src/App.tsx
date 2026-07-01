@@ -3,14 +3,13 @@
 // ============================================================
 
 import { AppProvider, useApp } from './context/AppContext';
-import type { Step, ApiProvider } from './types';
+import type { Step } from './types';
 import { KeywordsInput } from './components/KeywordsInput';
 import { ScriptSelection } from './components/ScriptSelection';
 import { StoryboardView } from './components/StoryboardView';
 import { VoiceSelection } from './components/VoiceSelection';
 import { BookPreview } from './components/BookPreview';
 import { ExportPanel } from './components/ExportPanel';
-import { PROVIDER_CONFIG } from './services/api';
 
 // ---- 步骤配置 ----
 const STEPS: { key: Step; label: string; icon: string }[] = [
@@ -34,34 +33,6 @@ function LoadingOverlay() {
         {state.loadingMessage}
         <span className="loading-dots" />
       </div>
-    </div>
-  );
-}
-
-// ---- 提供商选择栏 ----
-function ProviderBar() {
-  const { state, dispatch } = useApp();
-
-  return (
-    <div className="api-key-bar">
-      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginRight: '8px' }}>
-        文本模型：
-      </span>
-      <select
-        className="provider-select"
-        value={state.textProvider}
-        onChange={(e) => dispatch({ type: 'SET_TEXT_PROVIDER', payload: e.target.value as ApiProvider })}
-        title="文本生成提供商"
-      >
-        {(Object.keys(PROVIDER_CONFIG) as ApiProvider[]).map((key) => (
-          <option key={key} value={key}>
-            {PROVIDER_CONFIG[key].name}
-          </option>
-        ))}
-      </select>
-      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-        API Key 已内置，无需手动输入
-      </span>
     </div>
   );
 }
@@ -137,7 +108,6 @@ function AppContent() {
         <p className="subtitle">输入关键词，一键生成 Q 版绘本动画</p>
       </header>
 
-      <ProviderBar />
       <StepNav />
 
       {state.error && (
@@ -159,7 +129,7 @@ function AppContent() {
         fontSize: '0.8rem',
         color: 'var(--text-muted)',
       }}>
-        AI 绘本工坊 · 支持通义千问 / DeepSeek
+        AI 绘本工坊 · 由通义千问驱动
       </footer>
     </div>
   );

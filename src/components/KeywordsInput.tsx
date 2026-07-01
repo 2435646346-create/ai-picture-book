@@ -42,34 +42,20 @@ export function KeywordsInput() {
       {/* 模型选择 */}
       <div className="input-group">
         <label>文本模型</label>
-        <div className="model-selector-row">
-          <select
-            className="provider-select-inline"
-            value={state.textProvider}
-            onChange={(e) => dispatch({ type: 'SET_TEXT_PROVIDER', payload: e.target.value as ApiProvider })}
-          >
-            {(Object.keys(PROVIDER_CONFIG) as ApiProvider[]).map((key) => (
-              <option key={key} value={key}>
-                {PROVIDER_CONFIG[key].name}
-              </option>
-            ))}
-          </select>
-          <select
-            className="model-select-inline"
-            value={state.textModel}
-            onChange={(e) => dispatch({ type: 'SET_TEXT_MODEL', payload: e.target.value })}
-          >
-            {PROVIDER_CONFIG[state.textProvider].textModels.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.label}{m.free ? ' (免费)' : ''}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          className="model-select-inline"
+          style={{ width: '100%' }}
+          value={state.textModel}
+          onChange={(e) => dispatch({ type: 'SET_TEXT_MODEL', payload: e.target.value })}
+        >
+          {PROVIDER_CONFIG.dashscope.textModels.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}{m.free ? ' (免费)' : ''}
+            </option>
+          ))}
+        </select>
         <p className="hint">
-          {PROVIDER_CONFIG[state.textProvider].description}
-          {state.textProvider === 'dashscope' && ' — 推荐 Qwen Plus，免费额度充足'}
-          {state.textProvider === 'deepseek' && ' — 超低价格，但不支持图片和配音生成'}
+          通义千问 — 推荐 Qwen Plus，免费额度充足
         </p>
       </div>
 
