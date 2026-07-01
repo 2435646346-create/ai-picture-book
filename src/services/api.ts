@@ -172,7 +172,36 @@ async function generateIllustrationDashScope(
   const stylePrefix = STYLE_PROMPTS[artStyle];
   const fullPrompt = `${stylePrefix}. Scene: ${prompt}. Maintain consistent cute chibi character design throughout.`;
 
-  // 提交异步任务
+  // 使用 OpenAI 兼容模式同步生成图片（避免异步轮询的 CORS 问题）
+  const res = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'wanx2.1-t2i',
+      prompt: fullPrompt,
+      size: '1280*720',
+      n: 1,
+    }),
+  });
+
+  const data = await res.json();
+
+  // OpenAI 兼容格式: { data: [{ url: "..." }] }
+  const imageUrl = data.data?.[0]?.url;
+  if (imageUrl) return imageUrl;
+
+  // 如果兼容模式失败，回退到原生异步 API
+  return generateIllustrationDashScopeAsync(fullPrompt, apiKey);
+}
+
+// 回退方案：原生异步 API（通过公共 CORS 代理轮询）
+async function generateIllustrationDashScopeAsync(
+  fullPrompt: string,
+  apiKey: string,
+): Promise<string> {
   const submitRes = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis', {
     method: 'POST',
     headers: {
@@ -192,7 +221,7 @@ async function generateIllustrationDashScope(
     throw new Error(`DashScope 图片任务提交失败: ${submitData.message || JSON.stringify(submitData)}`);
   }
 
-  // 轮询任务状态
+  // 轮询任务状态（通过 CORS 代理）
   const taskId = submitData.output.task_id as string;
   const maxWait = 120_000;
   const startTime = Date.now();
