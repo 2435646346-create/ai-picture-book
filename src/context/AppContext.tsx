@@ -24,9 +24,8 @@ const initialState: AppState = {
   generatedScripts: [],
   selectedScriptIndex: null,
   storyboard: [],
-  selectedVoice: 'nova',
+  selectedVoice: 'longxiaochun',
   audioPages: [],
-  apiKey: localStorage.getItem('ai-picture-book-api-key') || '',
   textProvider: (localStorage.getItem('ai-picture-book-text-provider') as ApiProvider) || 'dashscope',
   imageProvider: (localStorage.getItem('ai-picture-book-image-provider') as ApiProvider) || 'dashscope',
   ttsProvider: (localStorage.getItem('ai-picture-book-tts-provider') as ApiProvider) || 'dashscope',
@@ -38,7 +37,6 @@ const initialState: AppState = {
 
 // ---- Action 类型 ----
 type Action =
-  | { type: 'SET_API_KEY'; payload: string }
   | { type: 'SET_TEXT_PROVIDER'; payload: ApiProvider }
   | { type: 'SET_IMAGE_PROVIDER'; payload: ApiProvider }
   | { type: 'SET_TTS_PROVIDER'; payload: ApiProvider }
@@ -61,10 +59,6 @@ type Action =
 // ---- Reducer ----
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
-    case 'SET_API_KEY':
-      localStorage.setItem('ai-picture-book-api-key', action.payload);
-      return { ...state, apiKey: action.payload };
-
     case 'SET_TEXT_PROVIDER': {
       localStorage.setItem('ai-picture-book-text-provider', action.payload);
       const firstModel = PROVIDER_CONFIG[action.payload].textModels[0]?.id ?? '';
@@ -135,7 +129,7 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, error: action.payload };
 
     case 'RESET':
-      return { ...initialState, apiKey: state.apiKey };
+      return { ...initialState };
 
     default:
       return state;
@@ -185,15 +179,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // 生成剧本
   const doGenerateScripts = useCallback(async () => {
-    if (!state.apiKey) {
-      dispatch({ type: 'SET_ERROR', payload: '请先设置 API Key' });
-      return;
-    }
     dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: 'AI 正在创作故事...' } });
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
       const scripts = await generateScripts(
-        state.apiKey,
         state.textProvider,
         state.textModel,
         state.keywords,
@@ -208,7 +197,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
     }
-  }, [state.apiKey, state.textProvider, state.textModel, state.keywords, state.pageCount, state.artStyle]);
+  }, [state.textProvider, state.textModel, state.keywords, state.pageCount, state.artStyle]);
 
   // 生成插图
   const doGenerateIllustrations = useCallback(async () => {
@@ -230,8 +219,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     try {
       await generateAllIllustrations(
-        state.apiKey,
-        state.imageProvider,
         script.pages,
         state.artStyle,
         (index, status, imageUrl) => {
@@ -261,7 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
     }
-  }, [state.apiKey, state.imageProvider, state.selectedScriptIndex, state.generatedScripts, state.artStyle]);
+  }, [state.imageProvider, state.selectedScriptIndex, state.generatedScripts, state.artStyle]);
 
   // 生成配音
   const doGenerateVoices = useCallback(async () => {
@@ -272,8 +259,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     try {
       await generateAllVoices(
-        state.apiKey,
-        state.ttsProvider,
         script.pages,
         state.selectedVoice,
         (index, status, audioUrl, duration) => {
@@ -301,7 +286,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
     }
-  }, [state.apiKey, state.ttsProvider, state.selectedScriptIndex, state.generatedScripts, state.selectedVoice]);
+  }, [state.ttsProvider, state.selectedScriptIndex, state.generatedScripts, state.selectedVoice]);
 
   const value: AppContextType = {
     state,

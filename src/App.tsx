@@ -38,14 +38,15 @@ function LoadingOverlay() {
   );
 }
 
-// ---- API Key 栏 ----
-function ApiKeyBar() {
+// ---- 提供商选择栏 ----
+function ProviderBar() {
   const { state, dispatch } = useApp();
-  const providerCfg = PROVIDER_CONFIG[state.textProvider];
 
   return (
     <div className="api-key-bar">
-      <div className={`key-status ${state.apiKey ? 'set' : ''}`} />
+      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginRight: '8px' }}>
+        文本模型：
+      </span>
       <select
         className="provider-select"
         value={state.textProvider}
@@ -58,21 +59,9 @@ function ApiKeyBar() {
           </option>
         ))}
       </select>
-      <input
-        type="password"
-        placeholder={providerCfg.keyPlaceholder}
-        value={state.apiKey}
-        onChange={(e) => dispatch({ type: 'SET_API_KEY', payload: e.target.value })}
-      />
-      <a
-        href={providerCfg.keyUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="key-link"
-        title="获取 API Key"
-      >
-        🔑
-      </a>
+      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+        API Key 已内置，无需手动输入
+      </span>
     </div>
   );
 }
@@ -148,7 +137,7 @@ function AppContent() {
         <p className="subtitle">输入关键词，一键生成 Q 版绘本动画</p>
       </header>
 
-      <ApiKeyBar />
+      <ProviderBar />
       <StepNav />
 
       {state.error && (
@@ -170,7 +159,7 @@ function AppContent() {
         fontSize: '0.8rem',
         color: 'var(--text-muted)',
       }}>
-        AI 绘本工坊 · 支持通义千问 / DeepSeek / OpenAI
+        AI 绘本工坊 · 支持通义千问 / DeepSeek
       </footer>
     </div>
   );

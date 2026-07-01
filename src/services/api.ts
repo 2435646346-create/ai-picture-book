@@ -1,10 +1,20 @@
 // ============================================================
 // AI 绘本工坊 - 多提供商 API 服务层
-// 支持: OpenAI / DashScope(通义千问) / DeepSeek
+// 支持: DashScope(通义千问) / DeepSeek
+// API Key 已内置，用户无需输入
 // ============================================================
 
 import OpenAI from 'openai';
 import type { StoryScript, StoryPage, ArtStyle, ApiProvider } from '../types';
+
+// ============================================================
+// 硬编码 API Key（已内置，用户无需输入）
+// ============================================================
+
+const BUILTIN_KEYS: Record<ApiProvider, string> = {
+  dashscope: 'sk-ws-H.RXIDYPP.bt9j.MEUCICYerY8EZS6zEmp76aSKuCCsEzLmZQX8_XVWOPIybN_zAiEAkSUoMaLV8ReCk3MXrnCCaehR0HxPJza5nlwmI7jGNrc',
+  deepseek: 'sk-f5c64d5df938490abe94cc47f20fed54',
+};
 
 // ============================================================
 // 提供商配置
@@ -16,8 +26,6 @@ export const PROVIDER_CONFIG: Record<ApiProvider, {
   textModels: { id: string; label: string; free?: boolean }[];
   supportsImage: boolean;
   supportsTTS: boolean;
-  keyPlaceholder: string;
-  keyUrl: string;
   baseURL: string;
 }> = {
   dashscope: {
@@ -30,8 +38,6 @@ export const PROVIDER_CONFIG: Record<ApiProvider, {
     ],
     supportsImage: true,
     supportsTTS: true,
-    keyPlaceholder: '输入 DashScope API Key (sk-...)',
-    keyUrl: 'https://dashscope.console.aliyun.com/apiKey',
     baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
   },
   deepseek: {
@@ -42,22 +48,7 @@ export const PROVIDER_CONFIG: Record<ApiProvider, {
     ],
     supportsImage: false,
     supportsTTS: false,
-    keyPlaceholder: '输入 DeepSeek API Key',
-    keyUrl: 'https://platform.deepseek.com/api_keys',
     baseURL: 'https://api.deepseek.com',
-  },
-  openai: {
-    name: 'OpenAI',
-    description: 'GPT-4o + DALL·E 3 + TTS',
-    textModels: [
-      { id: 'gpt-4o', label: 'GPT-4o' },
-      { id: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-    ],
-    supportsImage: true,
-    supportsTTS: true,
-    keyPlaceholder: '输入 OpenAI API Key (sk-...)',
-    keyUrl: 'https://platform.openai.com/api-keys',
-    baseURL: 'https://api.openai.com/v1',
   },
 };
 
@@ -74,7 +65,7 @@ const STYLE_PROMPTS: Record<ArtStyle, string> = {
 };
 
 // ============================================================
-// 语音选项（按提供商区分）
+// 语音选项（DashScope CosyVoice）
 // ============================================================
 
 const DASHSCOPE_VOICES = [
@@ -86,49 +77,35 @@ const DASHSCOPE_VOICES = [
   { id: 'longjing', name: '静听', description: '知性沉稳的女声，适合科普类', gender: 'female' as const, style: '知性沉稳' },
 ];
 
-const OPENAI_VOICES = [
-  { id: 'nova', name: '小暖 Nova', description: '温柔甜美的女声，最适合儿童绘本', gender: 'female' as const, style: '温柔甜美' },
-  { id: 'shimmer', name: '小柔 Shimmer', description: '柔和亲切的女声，像妈妈讲故事', gender: 'female' as const, style: '柔和亲切' },
-  { id: 'alloy', name: '小和 Alloy', description: '中性温暖的声音，适合各类故事', gender: 'female' as const, style: '中性温暖' },
-  { id: 'echo', name: '小亮 Echo', description: '活泼开朗的男声，适合冒险故事', gender: 'male' as const, style: '活泼开朗' },
-  { id: 'onyx', name: '小沉 Onyx', description: '低沉稳重的男声，适合睡前故事', gender: 'male' as const, style: '低沉稳重' },
-  { id: 'fable', name: '小趣 Fable', description: '生动有趣的声音，表情丰富', gender: 'male' as const, style: '生动有趣' },
-];
-
-export function getVoiceOptions(provider: ApiProvider) {
-  return provider === 'dashscope' ? DASHSCOPE_VOICES : OPENAI_VOICES;
-}
-
-function getTTSModel(provider: ApiProvider): string {
-  return provider === 'dashscope' ? 'cosyvoice-v1' : 'tts-1';
+export function getVoiceOptions(_provider: ApiProvider) {
+  return DASHSCOPE_VOICES;
 }
 
 // ============================================================
-// OpenAI 兼容客户端
+// OpenAI 兼容客户端（使用内置 Key）
 // ============================================================
 
-function getClient(apiKey: string, provider: ApiProvider): OpenAI {
+function getClient(provider: ApiProvider): OpenAI {
   const config = PROVIDER_CONFIG[provider];
   return new OpenAI({
-    apiKey,
+    apiKey: BUILTIN_KEYS[provider],
     baseURL: config.baseURL,
     dangerouslyAllowBrowser: true,
   });
 }
 
 // ============================================================
-// 1. 剧本生成（文本 LLM — 三家通用）
+// 1. 剧本生成（文本 LLM）
 // ============================================================
 
 export async function generateScripts(
-  apiKey: string,
   provider: ApiProvider,
   model: string,
   keywords: string,
   pageCount: number,
   artStyle: ArtStyle,
 ): Promise<StoryScript[]> {
-  const client = getClient(apiKey, provider);
+  const client = getClient(provider);
 
   const styleName: Record<string, string> = {
     'watercolor': '温暖水彩', 'cartoon': '日系Q版卡通',
@@ -191,51 +168,21 @@ export async function generateScripts(
 }
 
 // ============================================================
-// 2. 插图生成（按提供商分发）
+// 2. 插图生成（DashScope 通义万相）
 // ============================================================
 
 export async function generateIllustration(
-  apiKey: string,
-  provider: ApiProvider,
   prompt: string,
   artStyle: ArtStyle,
 ): Promise<string> {
-  if (provider === 'dashscope') {
-    return generateIllustrationDashScope(apiKey, prompt, artStyle);
-  }
-  return generateIllustrationOpenAI(apiKey, prompt, artStyle);
+  return generateIllustrationDashScope(prompt, artStyle);
 }
 
-// ---- OpenAI DALL·E 3 ----
-async function generateIllustrationOpenAI(
-  apiKey: string,
-  prompt: string,
-  artStyle: ArtStyle,
-): Promise<string> {
-  const client = getClient(apiKey, 'openai');
-  const stylePrefix = STYLE_PROMPTS[artStyle];
-  const fullPrompt = `${stylePrefix}. Scene: ${prompt}. Maintain consistent cute chibi character design throughout.`;
-
-  const response = await client.images.generate({
-    model: 'dall-e-3',
-    prompt: fullPrompt,
-    n: 1,
-    size: '1792x1024',
-    quality: 'standard',
-    response_format: 'b64_json',
-  });
-
-  const firstImage = response.data?.[0];
-  if (!firstImage?.b64_json) throw new Error('DALL·E 未返回图片数据');
-  return `data:image/png;base64,${firstImage.b64_json}`;
-}
-
-// ---- DashScope 通义万相（异步任务） ----
 async function generateIllustrationDashScope(
-  apiKey: string,
   prompt: string,
   artStyle: ArtStyle,
 ): Promise<string> {
+  const apiKey = BUILTIN_KEYS.dashscope;
   const stylePrefix = STYLE_PROMPTS[artStyle];
   const fullPrompt = `${stylePrefix}. Scene: ${prompt}. Maintain consistent cute chibi character design throughout.`;
 
@@ -287,20 +234,17 @@ async function generateIllustrationDashScope(
 }
 
 // ============================================================
-// 3. 配音生成（OpenAI 兼容 TTS — DashScope / OpenAI 通用）
+// 3. 配音生成（DashScope CosyVoice TTS）
 // ============================================================
 
 export async function generateVoice(
-  apiKey: string,
-  provider: ApiProvider,
   text: string,
   voiceId: string,
 ): Promise<{ audioUrl: string; duration: number }> {
-  const client = getClient(apiKey, provider);
-  const model = getTTSModel(provider);
+  const client = getClient('dashscope');
 
   const response = await client.audio.speech.create({
-    model,
+    model: 'cosyvoice-v1',
     voice: voiceId as any,
     input: text,
     response_format: 'mp3',
@@ -328,8 +272,6 @@ export async function generateVoice(
 // ============================================================
 
 export async function generateAllIllustrations(
-  apiKey: string,
-  provider: ApiProvider,
   pages: StoryPage[],
   artStyle: ArtStyle,
   onProgress: (index: number, status: 'generating' | 'done' | 'error', imageUrl?: string) => void,
@@ -340,7 +282,7 @@ export async function generateAllIllustrations(
     onProgress(i, 'generating');
     try {
       if (i > 0) await new Promise(r => setTimeout(r, 1500));
-      const imageUrl = await generateIllustration(apiKey, provider, pages[i]!.illustrationPrompt, artStyle);
+      const imageUrl = await generateIllustration(pages[i]!.illustrationPrompt, artStyle);
       results.push(imageUrl);
       onProgress(i, 'done', imageUrl);
     } catch (err) {
@@ -358,8 +300,6 @@ export async function generateAllIllustrations(
 // ============================================================
 
 export async function generateAllVoices(
-  apiKey: string,
-  provider: ApiProvider,
   pages: StoryPage[],
   voiceId: string,
   onProgress: (index: number, status: 'generating' | 'done' | 'error', audioUrl?: string, duration?: number) => void,
@@ -370,7 +310,7 @@ export async function generateAllVoices(
     onProgress(i, 'generating');
     try {
       if (i > 0) await new Promise(r => setTimeout(r, 500));
-      const { audioUrl, duration } = await generateVoice(apiKey, provider, pages[i]!.narration, voiceId);
+      const { audioUrl, duration } = await generateVoice(pages[i]!.narration, voiceId);
       results.push({ audioUrl, duration });
       onProgress(i, 'done', audioUrl, duration);
     } catch (err) {
@@ -390,7 +330,7 @@ export async function generateAllVoices(
 export const ART_STYLES_CONFIG = [
   { id: 'watercolor' as ArtStyle, name: '温暖水彩', label: '🎨 温暖水彩', description: '柔和水彩笔触，梦幻温暖的儿童绘本风格', promptPrefix: STYLE_PROMPTS['watercolor'], preview: '🎨' },
   { id: 'cartoon' as ArtStyle, name: '日系Q版', label: '✨ 日系Q版', description: '明亮可爱的日系卡通风格，大眼睛小身体', promptPrefix: STYLE_PROMPTS['cartoon'], preview: '✨' },
-  { id: '3d-pixar' as ArtStyle, name: '3D皮克斯', label: '🎬 3D皮克斯', description: '皮克斯/迪士尼风格3D渲染，精致可爱', promptPrefix: STYLE_PROMPTS['3d-pixar'], preview: '🎬' },
+  { id: '3d-pixar' as ArtStyle, name: '3D皮克斯', label: ' 3D皮克斯', description: '皮克斯/迪士尼风格3D渲染，精致可爱', promptPrefix: STYLE_PROMPTS['3d-pixar'], preview: '🎬' },
   { id: 'flat' as ArtStyle, name: '扁平简约', label: '🔷 扁平简约', description: '现代扁平设计，几何形状，柔和配色', promptPrefix: STYLE_PROMPTS['flat'], preview: '🔷' },
-  { id: 'ink' as ArtStyle, name: '水墨国风', label: '🖌️ 水墨国风', description: '中国水墨画风格，传统与可爱的结合', promptPrefix: STYLE_PROMPTS['ink'], preview: '🖌️' },
+  { id: 'ink' as ArtStyle, name: '水墨国风', label: '🖌️ 水墨国风', description: '中国水墨画风格，传统与可爱的结合', promptPrefix: STYLE_PROMPTS['ink'], preview: '️' },
 ];

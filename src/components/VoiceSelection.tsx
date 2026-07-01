@@ -3,8 +3,7 @@
 // ============================================================
 
 import { useApp } from '../context/AppContext';
-import { getVoiceOptions, PROVIDER_CONFIG } from '../services/api';
-import type { ApiProvider } from '../types';
+import { getVoiceOptions } from '../services/api';
 
 export function VoiceSelection() {
   const { state, dispatch, prevStep, doGenerateVoices } = useApp();
@@ -20,27 +19,6 @@ export function VoiceSelection() {
       <p className="card-description">
         为你的绘本选择一个合适的朗读声音。AI 会为每一页自动配音。
       </p>
-
-      {/* TTS 提供商选择 */}
-      <div className="input-group">
-        <label>语音合成服务</label>
-        <div className="model-selector-row">
-          {(['dashscope', 'openai'] as ApiProvider[]).map((key) => (
-            <button
-              key={key}
-              className={`page-count-btn ${state.ttsProvider === key ? 'selected' : ''}`}
-              onClick={() => dispatch({ type: 'SET_TTS_PROVIDER', payload: key })}
-            >
-              {PROVIDER_CONFIG[key].name}
-            </button>
-          ))}
-        </div>
-        <p className="hint">
-          {state.ttsProvider === 'dashscope'
-            ? '通义千问 CosyVoice — 中文效果好，有免费额度'
-            : 'OpenAI TTS — 英文效果优秀，中文也可用'}
-        </p>
-      </div>
 
       {/* 声音选择网格 */}
       <div className="voice-grid">
@@ -70,7 +48,7 @@ export function VoiceSelection() {
         color: 'var(--text-secondary)',
         textAlign: 'center',
       }}>
-        💡 配音使用 AI 语音合成生成，语速稍慢适合绘本朗读风格。生成后可在预览环节试听。
+        💡 配音使用通义千问 CosyVoice 生成，语速稍慢适合绘本朗读风格。生成后可在预览环节试听。
       </div>
 
       {/* 导航 */}

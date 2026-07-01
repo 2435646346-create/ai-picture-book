@@ -6,7 +6,7 @@
 export type Step = 'keywords' | 'script' | 'storyboard' | 'voice' | 'preview' | 'export';
 
 /** API 提供商 */
-export type ApiProvider = 'dashscope' | 'openai' | 'deepseek';
+export type ApiProvider = 'dashscope' | 'deepseek';
 
 /** 提供商配置 */
 export interface ProviderConfig {
@@ -16,8 +16,6 @@ export interface ProviderConfig {
   textModels: string[];
   supportsImage: boolean;
   supportsTTS: boolean;
-  keyPlaceholder: string;
-  keyUrl: string;
 }
 
 /** 画风预设 */
@@ -91,7 +89,6 @@ export interface AppState {
   audioPages: StoryboardPage[];
 
   // API 配置
-  apiKey: string;
   textProvider: ApiProvider;    // 文本生成用哪家
   imageProvider: ApiProvider;   // 图片生成用哪家
   ttsProvider: ApiProvider;     // 语音合成用哪家

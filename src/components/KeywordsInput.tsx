@@ -11,7 +11,7 @@ export function KeywordsInput() {
   const { state, dispatch, doGenerateScripts } = useApp();
   const [localKeywords, setLocalKeywords] = useState(state.keywords);
 
-  const canGenerate = localKeywords.trim().length > 0 && state.apiKey.trim().length > 0;
+  const canGenerate = localKeywords.trim().length > 0;
 
   const handleGenerate = () => {
     dispatch({ type: 'SET_KEYWORDS', payload: localKeywords });
@@ -115,7 +115,7 @@ export function KeywordsInput() {
           disabled={!canGenerate}
           onClick={handleGenerate}
         >
-          {state.apiKey ? '✨ 开始创作' : '请先输入 API Key'}
+          ✨ 开始创作
         </button>
       </div>
     </div>
