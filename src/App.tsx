@@ -1,5 +1,5 @@
 // ============================================================
-// AI 绘本工坊 - 主应用
+// AI 绘本工坊 - 全屏沉浸式布局
 // ============================================================
 
 import { AppProvider, useApp } from './context/AppContext';
@@ -20,6 +20,17 @@ const STEPS: { key: Step; label: string; icon: string }[] = [
   { key: 'preview', label: '预览', icon: '👀' },
   { key: 'export', label: '导出', icon: '📦' },
 ];
+
+// ---- 背景装饰 ----
+function AppBackground() {
+  return (
+    <div className="app-bg">
+      <div className="bg-orb" />
+      <div className="bg-orb" />
+      <div className="bg-orb" />
+    </div>
+  );
+}
 
 // ---- 加载遮罩 ----
 function LoadingOverlay() {
@@ -48,7 +59,7 @@ function StepNav() {
         const isCompleted = state.completedSteps.includes(step.key);
 
         return (
-          <div key={step.key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div key={step.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             {idx > 0 && (
               <div className={`step-connector ${isCompleted || isActive ? 'completed' : ''}`} />
             )}
@@ -67,31 +78,37 @@ function StepNav() {
   );
 }
 
+// ---- 顶部导航栏 ----
+function TopNav() {
+  return (
+    <header className="top-nav">
+      <div className="nav-brand">
+        <span className="nav-brand-icon">📚</span>
+        <span className="nav-brand-text">AI 绘本工坊</span>
+      </div>
+      <StepNav />
+    </header>
+  );
+}
+
 // ---- 步骤内容路由 ----
 function StepContent() {
   const { state } = useApp();
 
   const content = () => {
     switch (state.currentStep) {
-      case 'keywords':
-        return <KeywordsInput />;
-      case 'script':
-        return <ScriptSelection />;
-      case 'storyboard':
-        return <StoryboardView />;
-      case 'voice':
-        return <VoiceSelection />;
-      case 'preview':
-        return <BookPreview />;
-      case 'export':
-        return <ExportPanel />;
-      default:
-        return null;
+      case 'keywords': return <KeywordsInput />;
+      case 'script': return <ScriptSelection />;
+      case 'storyboard': return <StoryboardView />;
+      case 'voice': return <VoiceSelection />;
+      case 'preview': return <BookPreview />;
+      case 'export': return <ExportPanel />;
+      default: return null;
     }
   };
 
   return (
-    <div className="fade-in" key={state.currentStep}>
+    <div className="step-section fade-in" data-step={state.currentStep}>
       {content()}
     </div>
   );
@@ -102,36 +119,29 @@ function AppContent() {
   const { state } = useApp();
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>AI 绘本工坊</h1>
-        <p className="subtitle">输入关键词，一键生成 Q 版绘本动画</p>
-      </header>
+    <>
+      <AppBackground />
+      <div className="app-container">
+        <TopNav />
 
-      <StepNav />
+        {state.error && (
+          <div className="error-banner">
+            <span>⚠️</span>
+            <span>{state.error}</span>
+          </div>
+        )}
 
-      {state.error && (
-        <div className="error-banner">
-          <span>⚠️</span>
-          <span>{state.error}</span>
-        </div>
-      )}
+        <main className="main-content">
+          <StepContent />
+        </main>
 
-      <main>
-        <StepContent />
-      </main>
+        <LoadingOverlay />
 
-      <LoadingOverlay />
-
-      <footer style={{
-        textAlign: 'center',
-        padding: '32px 0',
-        fontSize: '0.8rem',
-        color: 'var(--text-muted)',
-      }}>
-        AI 绘本工坊 · 由通义千问驱动
-      </footer>
-    </div>
+        <footer className="app-footer">
+          AI 绘本工坊 · 由通义千问驱动
+        </footer>
+      </div>
+    </>
   );
 }
 

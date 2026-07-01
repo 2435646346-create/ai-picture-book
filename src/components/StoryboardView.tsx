@@ -1,5 +1,5 @@
 // ============================================================
-// 步骤 3: 分镜插图展示
+// 步骤 3: 分镜插图展示 — 全屏沉浸式
 // ============================================================
 
 import { useApp } from '../context/AppContext';
@@ -12,11 +12,14 @@ export function StoryboardView() {
   const completedCount = storyboard.filter(p => p.imageStatus === 'done').length;
 
   return (
-    <div className="card">
-      <h2 className="card-title">🎨 分镜插图</h2>
-      <p className="card-description">
-        AI 正在为你的绘本绘制插图，完成后可以进入配音环节。
-      </p>
+    <div className="glass-panel">
+      <div className="section-hero">
+        <span className="section-icon">🎨</span>
+        <h2 className="section-title">分镜插图</h2>
+        <p className="section-subtitle">
+          AI 正在为你的绘本绘制插图，完成后可以进入配音环节。
+        </p>
+      </div>
 
       {/* 进度条 */}
       {storyboard.length > 0 && (

@@ -1,11 +1,11 @@
 // ============================================================
-// 步骤 1: 关键词输入
+// 步骤 1: 关键词输入 — 全屏沉浸式
 // ============================================================
 
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ART_STYLES_CONFIG, PROVIDER_CONFIG } from '../services/api';
-import type { ArtStyle, ApiProvider } from '../types';
+import type { ArtStyle } from '../types';
 
 export function KeywordsInput() {
   const { state, dispatch, doGenerateScripts } = useApp();
@@ -19,12 +19,16 @@ export function KeywordsInput() {
   };
 
   return (
-    <div className="card">
-      <h2 className="card-title">✏️ 告诉我你的故事想法</h2>
-      <p className="card-description">
-        输入几个关键词或一句话描述，AI 会为你创作 3 个不同风格的绘本剧本。
-        比如："小兔子去月球冒险"、"森林里的魔法学校"、"猫咪和星星的故事"
-      </p>
+    <div className="glass-panel">
+      {/* Hero 区域 */}
+      <div className="section-hero">
+        <span className="section-icon">✏️</span>
+        <h2 className="section-title">告诉我你的故事想法</h2>
+        <p className="section-subtitle">
+          输入几个关键词或一句话描述，AI 会为你创作 3 个不同风格的绘本剧本。
+          比如"小兔子去月球冒险"、"森林里的魔法学校"
+        </p>
+      </div>
 
       {/* 关键词输入 */}
       <div className="input-group">
@@ -44,7 +48,6 @@ export function KeywordsInput() {
         <label>文本模型</label>
         <select
           className="model-select-inline"
-          style={{ width: '100%' }}
           value={state.textModel}
           onChange={(e) => dispatch({ type: 'SET_TEXT_MODEL', payload: e.target.value })}
         >
@@ -54,9 +57,7 @@ export function KeywordsInput() {
             </option>
           ))}
         </select>
-        <p className="hint">
-          通义千问 — 推荐 Qwen Plus，免费额度充足
-        </p>
+        <p className="hint">通义千问 — 推荐 Qwen Plus，免费额度充足</p>
       </div>
 
       {/* 页数选择 */}
@@ -95,9 +96,9 @@ export function KeywordsInput() {
       </div>
 
       {/* 生成按钮 */}
-      <div className="btn-group" style={{ justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-xl)' }}>
         <button
-          className="btn btn-primary"
+          className="btn btn-primary btn-large"
           disabled={!canGenerate}
           onClick={handleGenerate}
         >

@@ -1,5 +1,5 @@
 // ============================================================
-// 步骤 5: 绘本预览播放器
+// 步骤 5: 绘本预览播放器 — 全屏沉浸式
 // ============================================================
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -18,7 +18,6 @@ export function BookPreview() {
   const totalPages = storyboard.length;
   const page = storyboard[currentPage];
 
-  // 播放当前页音频
   const playCurrentPageAudio = useCallback(() => {
     if (!page || !page.audioUrl) return;
 
@@ -31,7 +30,6 @@ export function BookPreview() {
     audioRef.current = audio;
 
     audio.addEventListener('ended', () => {
-      // 自动翻页
       if (isPlaying && currentPage < totalPages - 1) {
         playTimeoutRef.current = setTimeout(() => {
           setCurrentPage(prev => prev + 1);
@@ -44,22 +42,16 @@ export function BookPreview() {
     audio.play().catch(console.error);
   }, [page, currentPage, totalPages, isPlaying]);
 
-  // 当页码变化时自动播放
   useEffect(() => {
     if (isPlaying && page?.audioUrl) {
       playCurrentPageAudio();
     }
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      if (playTimeoutRef.current) {
-        clearTimeout(playTimeoutRef.current);
-      }
+      if (audioRef.current) audioRef.current.pause();
+      if (playTimeoutRef.current) clearTimeout(playTimeoutRef.current);
     };
   }, [currentPage, isPlaying]);
 
-  // 手动播放当前页音频
   const handlePlayAudio = () => {
     if (page?.audioUrl) {
       if (audioRef.current) audioRef.current.pause();
@@ -69,20 +61,17 @@ export function BookPreview() {
     }
   };
 
-  // 开始自动播放
   const handleAutoPlay = () => {
     setIsPlaying(true);
     setCurrentPage(0);
   };
 
-  // 暂停
   const handlePause = () => {
     setIsPlaying(false);
     if (audioRef.current) audioRef.current.pause();
     if (playTimeoutRef.current) clearTimeout(playTimeoutRef.current);
   };
 
-  // 翻页
   const goToPage = (idx: number) => {
     if (idx >= 0 && idx < totalPages) {
       if (audioRef.current) audioRef.current.pause();
@@ -92,19 +81,28 @@ export function BookPreview() {
 
   if (totalPages === 0) {
     return (
-      <div className="card">
-        <p>还没有绘本数据，请先完成前面的步骤。</p>
-        <button className="btn btn-secondary" onClick={prevStep}>← 返回</button>
+      <div className="glass-panel">
+        <div className="section-hero">
+          <span className="section-icon">👀</span>
+          <h2 className="section-title">绘本预览</h2>
+          <p className="section-subtitle">还没有绘本数据，请先完成前面的步骤。</p>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <button className="btn btn-secondary" onClick={prevStep}>← 返回</button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="card">
-      <h2 className="card-title">👀 绘本预览</h2>
-      <p className="card-description">
-        预览你的绘本效果，可以手动翻页或自动播放。满意后可以导出！
-      </p>
+    <div className="glass-panel">
+      <div className="section-hero">
+        <span className="section-icon">👀</span>
+        <h2 className="section-title">绘本预览</h2>
+        <p className="section-subtitle">
+          预览你的绘本效果，可以手动翻页或自动播放。满意后可以导出！
+        </p>
+      </div>
 
       <div className="book-player">
         {/* 绘本页面展示 */}
@@ -187,9 +185,9 @@ export function BookPreview() {
                 borderRadius: 'var(--radius-sm)',
                 overflow: 'hidden',
                 border: idx === currentPage
-                  ? '2px solid var(--accent-coral)'
+                  ? '2px solid var(--coral)'
                   : '2px solid transparent',
-                opacity: idx === currentPage ? 1 : 0.6,
+                opacity: idx === currentPage ? 1 : 0.5,
                 transition: 'all 0.2s ease',
               }}
             >
@@ -203,7 +201,7 @@ export function BookPreview() {
                 <div style={{
                   width: '100%',
                   aspectRatio: '16/9',
-                  background: 'var(--bg-secondary)',
+                  background: 'var(--bg-surface)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
